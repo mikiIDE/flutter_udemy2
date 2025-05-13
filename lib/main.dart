@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async'; //ストップウォッチ用のインポート
 
 void main() {
   runApp(const MyApp());
@@ -39,10 +40,15 @@ class CombinedPage extends StatelessWidget {
             //   チェックボックスコンポーネント
             CustomCheckBox(),
 
-            SizedBox(height: 30),
+            SizedBox(height: 50),
 
             // スライダーコンポーネント
             CustomSlider(),
+
+            SizedBox(height: 50),
+
+            // ストップウォッチコンポーネント
+            CustomStopWatch(),
           ],
         ),
       ),
@@ -117,6 +123,80 @@ class _CustomSliderState extends State<CustomSlider> {
           },
         ),
         Text("Value Selected: ${_currentSliderValue.round()}"),
+      ],
+    );
+  }
+}
+
+// ストップウォッチコンポーネント
+class CustomStopWatch extends StatefulWidget {
+  const CustomStopWatch({super.key});
+
+  @override
+  State<CustomStopWatch> createState() => _CustomStopWatchState();
+}
+
+class _CustomStopWatchState extends State<CustomStopWatch> {
+  Timer _timer = Timer(Duration.zero, () {});
+  final Stopwatch _stopwatch = Stopwatch();
+  String _time = "00:00:000";
+
+  void _startTimer() {
+    if (!_stopwatch.isRunning) {
+      _stopwatch.start();
+      _timer = Timer.periodic(Duration(milliseconds: 1), (timer) {
+        setState(() {
+          final Duration elapsed = _stopwatch.elapsed;
+          final String minute = elapsed.inMinutes.toString().padLeft(2, "0");
+          final String sec = (elapsed.inSeconds % 60).toString().padLeft(
+            2,
+            "0",
+          );
+          final String milliSec = (elapsed.inMilliseconds % 1000)
+              .toString()
+              .padLeft(3, "0");
+          _time = "$minute:$sec:$milliSec";
+        });
+      });
+    }
+  }
+
+  void _stopTimer() {
+    if (_stopwatch.isRunning) {
+      _stopwatch.stop();
+      _timer.cancel();
+    }
+  }
+
+  void _resetTimer() {
+    _stopwatch.reset();
+    _time = "00:00:000";
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children:<Widget> [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text("経過時間"),
+        ),
+        Text(
+          "$_time",
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children:<Widget> [
+            ElevatedButton(onPressed: _startTimer, child: const Text("スタート")),
+            const SizedBox(width: 10,),
+            ElevatedButton(onPressed: _stopTimer, child: const Text("ストップ")),
+            const SizedBox(width: 10,),
+            ElevatedButton(onPressed: _resetTimer, child: const Text("リセット")),
+          ],
+        )
       ],
     );
   }
